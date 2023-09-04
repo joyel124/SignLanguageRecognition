@@ -52,6 +52,19 @@ section {
 .invisible {
   opacity: 0.2;
 }
+.centered {
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center; /* Center its children horizontally */
+}
+
+@media (max-width: 600px) {
+  .centered {
+    top: 50%;
+  }
+}
 
 .detectOnClick {
   position: relative;
@@ -60,7 +73,10 @@ section {
   margin: 2% 1%;
   cursor: pointer;
 }
+
 .videoView {
+  justify-content: center;
+  align-content: center;
   position: absolute;
   float: left;
   width: 48%;

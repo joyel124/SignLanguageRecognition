@@ -16,6 +16,10 @@ let enableWebcamButton;
 let webcamRunning = false;
 const videoHeight = "360px";
 const videoWidth = "480px";
+let gestureText = [];
+let lastSavedLetter = '';
+let lastGestureTime = 0; // Registro del tiempo del último gesto
+const minTimeBetweenGestures = 2000;
 // Before we can use HandLandmarker class we must wait for it to finish
 // loading. Machine Learning models can be large and take a moment to
 // get everything needed to run.
@@ -23,7 +27,7 @@ const createGestureRecognizer = async () => {
     const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
     gestureRecognizer = await GestureRecognizer.createFromOptions(vision, {
         baseOptions: {
-            modelAssetPath: "./numbers.task",
+            modelAssetPath: "./abecedario-usa.task",
             delegate: "GPU"
         },
         runningMode: runningMode
@@ -39,6 +43,24 @@ const canvasElement = document.getElementById("output_canvas");
 const canvasCtx = canvasElement.getContext("2d");
 const gestureOutput = document.getElementById("gesture_output");
 // Check if webcam access is supported.
+function actualizarTextoEnHTML() {
+    // Actualiza el contenido del elemento <span> con id "gestureText"
+    const spanElement = document.getElementById("gestureText");
+    spanElement.textContent = `Frase: ${gestureText.join(' ')}`;
+}
+
+// Llama a la función actualizarTextoEnHTML cada 1000 milisegundos (1 segundo)
+setInterval(actualizarTextoEnHTML, 1000);
+document.getElementById("soundButton")
+    .addEventListener("click", function () {
+        const synth = window.speechSynthesis;
+        const utterance = new SpeechSynthesisUtterance(gestureText.join(''));
+        utterance.lang = "es-MX";
+        utterance.pitch = 1;
+        utterance.rate = 0.5;
+        utterance.volume = 1;
+        synth.speak(utterance);
+    });
 function hasGetUserMedia() {
     return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 }
@@ -52,6 +74,12 @@ else {
     console.warn("getUserMedia() is not supported by your browser");
 }
 // Enable the live webcam view and start detection.
+function resetTranslation() {
+    gestureText = []; // Reinicia el array de texto
+    actualizarTextoEnHTML();
+}
+const resetButton = document.getElementById("resetButton");
+resetButton.addEventListener("click", resetTranslation);
 function enableCam(event) {
     if (!gestureRecognizer) {
         alert("Please wait for gestureRecognizer to load");
@@ -99,18 +127,34 @@ async function predictWebcam() {
         for (const landmarks of results.landmarks) {
             drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
                 color: "#00FF00",
-                lineWidth: 5
+                lineWidth: 2
             });
-            drawLandmarks(canvasCtx, landmarks, { color: "#FF0000", lineWidth: 2 });
+            drawLandmarks(canvasCtx, landmarks, { color: "#FF0000", lineWidth: 0.5 });
         }
     }
     canvasCtx.restore();
     if (results.gestures.length > 0) {
-        gestureOutput.style.display = "block";
-        gestureOutput.style.width = videoWidth;
+        const currentTime = Date.now(); // Obtener el tiempo actual
         const categoryName = results.gestures[0][0].categoryName;
         const categoryScore = parseFloat(results.gestures[0][0].score * 100).toFixed(2);
-        gestureOutput.innerText = `LETRA: ${categoryName}\n PROBABILIDAD: ${categoryScore} %`;
+
+        // Verificar si ha pasado suficiente tiempo desde el último gesto similar
+        if (currentTime - lastGestureTime >= minTimeBetweenGestures) {
+            // Filtrar gestos repetidos
+            if (categoryName !== lastSavedLetter || categoryName === 'R') {
+                gestureOutput.style.display = "block";
+                gestureOutput.style.width = videoWidth;
+                gestureOutput.innerText = `LETRA: ${categoryName}\n PROBABILIDAD: ${categoryScore} %\n FRASE: ${gestureText.join('')}`;
+                if (categoryScore > 90) {
+                    gestureText.push(categoryName);
+                    console.log(gestureText);
+
+                    // Actualizar el tiempo del último gesto y la última letra guardada
+                    lastGestureTime = currentTime;
+                    lastSavedLetter = categoryName;
+                }
+            }
+        }
     }
     else {
         gestureOutput.style.display = "none";
