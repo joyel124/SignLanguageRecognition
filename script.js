@@ -19,22 +19,38 @@ const videoWidth = "480px";
 let gestureText = [];
 let lastSavedLetter = '';
 let lastGestureTime = 0; // Registro del tiempo del último gesto
-const minTimeBetweenGestures = 2000;
+const minTimeBetweenGestures = 1000;
 // Before we can use HandLandmarker class we must wait for it to finish
 // loading. Machine Learning models can be large and take a moment to
 // get everything needed to run.
-const createGestureRecognizer = async () => {
+
+const createGestureRecognizer = async (selectedOption) => {
+    console.log(selectedOption);
+    let country;
+    if(selectedOption==="PE"){
+        country="abecedario-peru-v2"
+    }else{
+        if(selectedOption==="EC"){
+            country="abecedario-ecuador-v2"
+        }else{
+            if(selectedOption==="MX"){
+                country="abecedario-mx-v2"
+            }else{
+                country="abecedario-usa"
+            }
+        }
+    }
     const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
     gestureRecognizer = await GestureRecognizer.createFromOptions(vision, {
         baseOptions: {
-            modelAssetPath: "./abecedario-usa.task",
+            modelAssetPath: `./${country}.task`,
             delegate: "GPU"
         },
         runningMode: runningMode
     });
     demosSection.classList.remove("invisible");
 };
-createGestureRecognizer();
+createGestureRecognizer("Perú");
 /********************************************************************
 // Demo 2: Continuously grab image from webcam stream and detect it.
 ********************************************************************/
@@ -48,7 +64,17 @@ function actualizarTextoEnHTML() {
     const spanElement = document.getElementById("gestureText");
     spanElement.textContent = `Frase: ${gestureText.join(' ')}`;
 }
+const miSelect = document.getElementById("miSelect");
 
+// Agrega un evento de cambio (change) al elemento select
+miSelect.addEventListener("change", function () {
+    // Obtiene el valor seleccionado
+    const valorSeleccionado = miSelect.value;
+
+    // Muestra el valor seleccionado en la consola
+    console.log("Opción seleccionada:", valorSeleccionado);
+    createGestureRecognizer(valorSeleccionado);
+});
 // Llama a la función actualizarTextoEnHTML cada 1000 milisegundos (1 segundo)
 setInterval(actualizarTextoEnHTML, 1000);
 document.getElementById("soundButton")
