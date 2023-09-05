@@ -47,7 +47,7 @@ createGestureRecognizer("Perú");
 const video = document.getElementById("webcam");
 const canvasElement = document.getElementById("output_canvas");
 const canvasCtx = canvasElement.getContext("2d");
-const gestureOutput = document.getElementById("gesture_output");
+//const gestureOutput = document.getElementById("gesture_output");
 // Check if webcam access is supported.
 function actualizarTextoEnHTML() {
     // Actualiza el contenido del elemento <span> con id "gestureText"
@@ -161,9 +161,9 @@ async function predictWebcam() {
         if (currentTime - lastGestureTime >= minTimeBetweenGestures) {
             // Filtrar gestos repetidos
             if (categoryName !== lastSavedLetter || categoryName === 'R') {
-                gestureOutput.style.display = "block";
-                gestureOutput.style.width = videoWidth;
-                gestureOutput.innerText = `LETRA: ${categoryName}\n PROBABILIDAD: ${categoryScore} %\n FRASE: ${gestureText.join('')}`;
+                //gestureOutput.style.display = "block";
+                //gestureOutput.style.width = videoWidth;
+                //gestureOutput.innerText = `LETRA: ${categoryName}\n PROBABILIDAD: ${categoryScore} %\n FRASE: ${gestureText.join('')}`;
                 if (categoryScore > 90) {
                     gestureText.push(categoryName);
                     console.log(gestureText);
@@ -176,7 +176,7 @@ async function predictWebcam() {
         }
     }
     else {
-        gestureOutput.style.display = "none";
+        //gestureOutput.style.display = "none";
     }
     // Call this function again to keep predicting when the browser is ready.
     if (webcamRunning === true) {
