@@ -57,8 +57,8 @@ document.getElementById("soundButton")
         const utterance = new SpeechSynthesisUtterance(gestureText.join(''));
         utterance.lang = "es-MX";
         utterance.pitch = 1;
-        utterance.rate = 0.5;
-        utterance.volume = 1;
+        utterance.rate = 1;
+        utterance.volume = 5;
         synth.speak(utterance);
     });
 function hasGetUserMedia() {
