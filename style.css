@@ -32,7 +32,6 @@ section {
 }
 
 .output_canvas {
-  transform: rotateY(180deg);
 }
 
 .output {
